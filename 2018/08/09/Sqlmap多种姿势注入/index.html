@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+
+<script type="text/javascript" color="0,0,255" opacity="0.7" zindex="-2" count="99" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/Adolph.jpg?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/Adolph.jpg?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/Adolph.jpg?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/Adolph.jpg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Sqlmap,注入,渗透,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="sqlmap是一种自动化sql注入攻击工具">
+<meta name="keywords" content="Sqlmap,注入,渗透">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Sqlmap多种姿势注入">
+<meta property="og:url" content="https://www.zzh.pub/2018/08/09/Sqlmap多种姿势注入/index.html">
+<meta property="og:site_name" content="Adolph">
+<meta property="og:description" content="sqlmap是一种自动化sql注入攻击工具">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://i.imgur.com/VYdkkvG.png">
+<meta property="og:updated_time" content="2018-08-09T15:51:43.784Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Sqlmap多种姿势注入">
+<meta name="twitter:description" content="sqlmap是一种自动化sql注入攻击工具">
+<meta name="twitter:image" content="https://i.imgur.com/VYdkkvG.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://www.zzh.pub/2018/08/09/Sqlmap多种姿势注入/">
+
+
+
+
+
+  <title>Sqlmap多种姿势注入 | Adolph</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Adolph</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">助他人,己莫记</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-forensic">
+          <a href="/categories/Forensic/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br>
+            
+            Forensic
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-ctf">
+          <a href="/categories/CTF/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-flag"></i> <br>
+            
+            CTF
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-kali">
+          <a href="/categories/Kali/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user-secret"></i> <br>
+            
+            Kali
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-web">
+          <a href="/categories/Web" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-globe"></i> <br>
+            
+            Web
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-misc">
+          <a href="/categories/Misc/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-key"></i> <br>
+            
+            隐写术
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-cryptology">
+          <a href="/categories/Cryptology/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-lock"></i> <br>
+            
+            密码学
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-ope">
+          <a href="/categories/Ope/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-university"></i> <br>
+            
+            服务器运维
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://www.zzh.pub/2018/08/09/Sqlmap多种姿势注入/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Adolph">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/Adolph.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Adolph">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Sqlmap多种姿势注入</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-09T23:25:00+08:00">
+                2018-08-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index">
+                    <span itemprop="name">Web</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1,423
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  6
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="sqlmap是一种自动化sql注入攻击工具"><a href="#sqlmap是一种自动化sql注入攻击工具" class="headerlink" title="sqlmap是一种自动化sql注入攻击工具"></a>sqlmap是一种自动化sql注入攻击工具</h1><p><img src="https://i.imgur.com/VYdkkvG.png" alt=""><br><a id="more"></a></p>
+<h1 id="sqlmap环境搭建："><a href="#sqlmap环境搭建：" class="headerlink" title="sqlmap环境搭建："></a>sqlmap环境搭建：</h1><p>1.使用kalil inux集成环境免安装 2.python环境下运行sqlmap.py 3.免安装版命令行中直接执行</p>
+<p>具体的安装包网上很多</p>
+<h1 id="sqlmap操作"><a href="#sqlmap操作" class="headerlink" title="sqlmap操作"></a>sqlmap操作</h1><h2 id="sql注入的一般流程："><a href="#sql注入的一般流程：" class="headerlink" title="sql注入的一般流程："></a>sql注入的一般流程：</h2><p>1.发现网站信息如数据库类型版本等</p>
+<p>2.判断注入点存在</p>
+<p>3.注入方式的判断：get，post，cookie，xml，时间盲注，报错注入等</p>
+<p>4.进行注入获取数据库信息</p>
+<p>5.脱裤或getshell</p>
+<h2 id="使用sqlmap进行注入攻击测试："><a href="#使用sqlmap进行注入攻击测试：" class="headerlink" title="使用sqlmap进行注入攻击测试："></a>使用sqlmap进行注入攻击测试：</h2><h3 id="发现网站信息判断数据库版本"><a href="#发现网站信息判断数据库版本" class="headerlink" title="发现网站信息判断数据库版本"></a>发现网站信息判断数据库版本</h3><p>运行sqlmap执行：sqlmap -u “url”</p>
+<p>进行基本注入检测</p>
+<h3 id="注入点存在性判断"><a href="#注入点存在性判断" class="headerlink" title="注入点存在性判断"></a>注入点存在性判断</h3><p>可以依据owaspzap，sqlmap等漏洞检测工具检测</p>
+<h4 id="get类型检测"><a href="#get类型检测" class="headerlink" title="get类型检测"></a>get类型检测</h4><p>sqlmap -u “url?id=1”  ”id=1“根据具体情况进行替换</p>
+<h4 id="post类型检测"><a href="#post类型检测" class="headerlink" title="post类型检测"></a>post类型检测</h4><p>sqlmap -u “url” –data “postdata”</p>
+<p>sqlmap -r “txt路径” -p n（txt为burp抓包文件）</p>
+<h4 id="cookie类型检测"><a href="#cookie类型检测" class="headerlink" title="cookie类型检测"></a>cookie类型检测</h4><p>sqlmap -u “url” –cookie “cookiedata”</p>
+<p>时间盲注和报错注入的检测是基于get，post，cookie下的注入检测的具体类型可根据之上信息进行发现</p>
+<h4 id="时间盲注的手工检测"><a href="#时间盲注的手工检测" class="headerlink" title="时间盲注的手工检测"></a>时间盲注的手工检测</h4><p>and if(查询语句,1，sleep(5))</p>
+<h4 id="报错注入的手工检测"><a href="#报错注入的手工检测" class="headerlink" title="报错注入的手工检测"></a>报错注入的手工检测</h4><p>结合具体报错函数不详细阐述</p>
+<h4 id="进行注入获取数据库信息"><a href="#进行注入获取数据库信息" class="headerlink" title="进行注入获取数据库信息"></a>进行注入获取数据库信息</h4><p>以get请求为例：sqlmap -u “url” –current -db sqlmap -u“url”–dbs</p>
+<p>数据库数据量检测：sqlmap -u “url”  –count -D “dbname”</p>
+<p>用户权限检测:sqlmap -u “url” –privileges</p>
+<p>表名检测: sqlmap -u “url” –tables -D “dbname”</p>
+<p>列名:sqlmap -u “url” –columns -T “TABLENAME” -D “DBNAME”</p>
+<p>数据列出:sqlmap -u “url” -C “COLUMNNAME” -T “TABLENAME” -D “DBNAME” –dump</p>
+<p>已知ip用户名密码对远程数据库的管理:sqlmap -d “mysql://用户名:密码@ip:端口/数据库名”</p>
+<p>检测出时间盲注之后进行延时注入:sqlmap -u “url” –delay (秒数)或者sqlmap -u “url” -safe-freq</p>
+<h4 id="GETSHELL"><a href="#GETSHELL" class="headerlink" title="GETSHELL"></a>GETSHELL</h4><p>sqlmap交互式系统命令执行：sqlmap -u “url” –os-cmd=”命令”(需知道或者猜测网站的绝对路径)</p>
+<p>webshell编写:sqlmap -u “url” –os-shell</p>
+<p>本地上传shell(文件写入):sqlmap -u “url” –file-write “写入的本地文件路径(txt文件)” –file-dest “目标路径”(text文本写入目标文件源文件最好是txt)</p>
+<h4 id="绕WAF"><a href="#绕WAF" class="headerlink" title="绕WAF"></a>绕WAF</h4><p>可以顺利的进行常规注入的站点少之又少，网站防火墙的普遍存在，绕过waf的技术必不可少，在这使用sqlmap中的tamper脚本进行绕过waf</p>
+<p>使用语法:sqlmap -u “url” –tamper=”脚本名称”</p>
+<p>绕过waf脚本具体如下(脚本在kali中的位置/usr/share/sqlmap/tamper)</p>
+<p>链接：<a href="https://pan.baidu.com/s/1Lrf27D2PyAhDYmxNyclp0g" target="_blank" rel="noopener">https://pan.baidu.com/s/1Lrf27D2PyAhDYmxNyclp0g</a> 密码：n0sd</p>
+<p>–technique 参数</p>
+<p>B: Boolean-based blind SQL injection（布尔型注入）<br>E: Error-based SQL injection（报错型注入）<br>U: UNION query SQL injection（可联合查询注入）<br>S: Stacked queries SQL injection（可多语句查询注入）<br>T: Time-based blind SQL injection（基于时间延迟注入）</p>
+<h4 id="批量扫描"><a href="#批量扫描" class="headerlink" title="批量扫描"></a>批量扫描</h4><p>GET请求：sqlmap -m txt的目录(一行一个url)</p>
+<p>POST以及COOKIE注入:sqlmap -l xxx.log –batch -smart</p>
+<p>–batch为自动选择yes，配合-smart则是根据检测自行选择</p>
+<p>l文件为burpsuite抓包的log可以在option中开启post的proxy然后抓包，选中logging中日志即可。</p>
+<h4 id="风险等级与探测等级"><a href="#风险等级与探测等级" class="headerlink" title="风险等级与探测等级"></a>风险等级与探测等级</h4><p>探测：–level（1-5）默认为1  2的时候检测cookie 3的时候检测http头user-agent/referer头</p>
+<p>风险：–risk  （1-4）默认为1  1是检测大部分语句 2是检测基于事件的语句 3是增加or语句检测(存在更新原表的风险)</p>
+<p>检测显示: –v参数有7个等级，默认为1：0 : 只显示python错误以及严重的信息  1 : 同时显示信息和警告信息（默认）  2 : 同时显示debug的信息  3 : 同时显示注入的payload  4 : 同时显示HTTP请求  5 : 同时显示HTTP响应头  6 : 同时显示HTTP响应页面</p>
+<p>以上定义在xml/payload中可以自己增加限定。</p>
+<h4 id="利用sqlmap进行注入原理学习"><a href="#利用sqlmap进行注入原理学习" class="headerlink" title="利用sqlmap进行注入原理学习"></a>利用sqlmap进行注入原理学习</h4><h4 id="sqlmap主要目录目录"><a href="#sqlmap主要目录目录" class="headerlink" title="sqlmap主要目录目录:"></a>sqlmap主要目录目录:</h4><p>doc/ —-&gt;&gt;&gt;该文件夹包含了SQLmap 的具体使用说明，例如多种语言的简要说明、PDF版的详细说明、FAQ、作者信息等。<br>extra/ —&gt;&gt;&gt;这里包含了SQLmap的多种额外功能，例如发出声响（beep)、运行cmd、安全执行、shellcode等。<br>lib/ —&gt;&gt;&gt;这里包含了SQLmap的多种连接库，如五种注入类型请求的参数、提权操作等。<br>plugins/ —&gt;&gt;&gt;这里包含了各种数据库的信息和数据库通用事项。<br>procs/ —&gt;&gt;&gt;这里包含了mssqlserver、 mysql、Oracle和postgresql的触发程序<br>shell/ —&gt;&gt;&gt;这里包含了多种注入成功后的多种shell远程连接命令执行和管理数据库<br>tamper/ —&gt;&gt;&gt;这里包含了绕过脚本，例如编码绕过、注释绕过等。<br>thirdparty/ —&gt;&gt;&gt;这里包含了一些其他第三方的插件，例如优化、保持连接、颜色等。<br>txt/ —&gt;&gt;&gt;这里包含了一些字典，例如用户浏览器代理、表、列、关键词等。<br>udf/ —&gt;&gt;&gt;这里包含了用户自己定义的攻击载荷。<br>waf/ —&gt;&gt;&gt;&gt;这里包含了一些多种常见的防火墙特征。可以直接使用–identify-waf来进行检测。<br>xml/ —&gt;&gt;&gt;这里包含了多种数据库的注入检测载荷、旗标信息以及其他信息。在这里可以看到进行注入的。</p>
+<h4 id="sqlmap的注入语法："><a href="#sqlmap的注入语法：" class="headerlink" title="sqlmap的注入语法："></a>sqlmap的注入语法：</h4><p>sqlmap中的xml目录记录其检测注入的语法结构，可以打开根据其中的payload进行注入语法的学习（前面一大段为解释不需要看）</p>
+<h4 id="sqlmap的代理："><a href="#sqlmap的代理：" class="headerlink" title="sqlmap的代理："></a>sqlmap的代理：</h4><p>可以设置–proxy=<a href="http://ip:port，这个功能的好处是可以打开burpsuite进行结合拦截包信息，进行修改或查看" target="_blank" rel="noopener">http://ip:port，这个功能的好处是可以打开burpsuite进行结合拦截包信息，进行修改或查看</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+      <div>
+        <div id="wechat_subscriber" style="display: block; padding: 10px 0; margin: 20px auto; width: 100%; text-align: center">
+    <img id="wechat_subscriber_qcode" src="/images/weix.png" alt="Adolph wechat" style="width: 200px; max-width: 100%;">
+    <div>Hint:狗狗隐写，听说微信扫一扫就能交个朋友</div>
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>哈哈,觉得有收获,打赏一分钱护护肝</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/weipay.png" alt="Adolph 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt="Adolph 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    Adolph
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://www.zzh.pub/2018/08/09/Sqlmap多种姿势注入/" title="Sqlmap多种姿势注入">https://www.zzh.pub/2018/08/09/Sqlmap多种姿势注入/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Sqlmap/" rel="tag"># Sqlmap</a>
+          
+            <a href="/tags/注入/" rel="tag"># 注入</a>
+          
+            <a href="/tags/渗透/" rel="tag"># 渗透</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/09/网页验证码突破/" rel="next" title="网页验证码突破">
+                <i class="fa fa-chevron-left"></i> 网页验证码突破
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/08/10/Ubuntu下oneinstack的安装/" rel="prev" title="Ubuntu下oneinstack的安装">
+                Ubuntu下oneinstack的安装 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC8zODcxNS8xNTI0Mw=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/Adolph.jpg" alt="Adolph">
+            
+              <p class="site-author-name" itemprop="name">Adolph</p>
+              <p class="site-description motion-element" itemprop="description">我只不过是游在水面上的一条鱼，正好被你发现。</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">23</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="http://music.163.com/playlist?id=596556711&userid=418158440" target="_blank" title="Music">
+                      
+                        <i class="fa fa-fw fa-cloud"></i>Music</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:98adolph@gmail.com" target="_blank" title="Gmail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>Gmail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://google.com" target="_blank" title="Google">
+                      
+                        <i class="fa fa-fw fa-google"></i>Google</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-links"></i>
+                资源链接
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://butian.360.cn/" title="补天" target="_blank">补天</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.xctf.org.cn/" title="xctf" target="_blank">xctf</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.ichunqiu.com/s" title="i春秋" target="_blank">i春秋</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://www.freebuf.com/" title="Freebuf" target="_blank">Freebuf</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ctf-wiki.github.io" title="CTF wiki" target="_blank">CTF wiki</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.jarvisoj.com" title="Jarvis OJ" target="_blank">Jarvis OJ</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://www.ssleye.com/" title="CTF编码" target="_blank">CTF编码</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://pcat.cnblogs.com/" title="Pcat" target="_blank">Pcat</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="330" height="86" src="//music.163.com/outchain/player?type=2&id=450951316&auto=1&height=66"></iframe>
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#sqlmap是一种自动化sql注入攻击工具"><span class="nav-number">1.</span> <span class="nav-text">sqlmap是一种自动化sql注入攻击工具</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#sqlmap环境搭建："><span class="nav-number">2.</span> <span class="nav-text">sqlmap环境搭建：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#sqlmap操作"><span class="nav-number">3.</span> <span class="nav-text">sqlmap操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#sql注入的一般流程："><span class="nav-number">3.1.</span> <span class="nav-text">sql注入的一般流程：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用sqlmap进行注入攻击测试："><span class="nav-number">3.2.</span> <span class="nav-text">使用sqlmap进行注入攻击测试：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#发现网站信息判断数据库版本"><span class="nav-number">3.2.1.</span> <span class="nav-text">发现网站信息判断数据库版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#注入点存在性判断"><span class="nav-number">3.2.2.</span> <span class="nav-text">注入点存在性判断</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#get类型检测"><span class="nav-number">3.2.2.1.</span> <span class="nav-text">get类型检测</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#post类型检测"><span class="nav-number">3.2.2.2.</span> <span class="nav-text">post类型检测</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#cookie类型检测"><span class="nav-number">3.2.2.3.</span> <span class="nav-text">cookie类型检测</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#时间盲注的手工检测"><span class="nav-number">3.2.2.4.</span> <span class="nav-text">时间盲注的手工检测</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#报错注入的手工检测"><span class="nav-number">3.2.2.5.</span> <span class="nav-text">报错注入的手工检测</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#进行注入获取数据库信息"><span class="nav-number">3.2.2.6.</span> <span class="nav-text">进行注入获取数据库信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GETSHELL"><span class="nav-number">3.2.2.7.</span> <span class="nav-text">GETSHELL</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#绕WAF"><span class="nav-number">3.2.2.8.</span> <span class="nav-text">绕WAF</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#批量扫描"><span class="nav-number">3.2.2.9.</span> <span class="nav-text">批量扫描</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#风险等级与探测等级"><span class="nav-number">3.2.2.10.</span> <span class="nav-text">风险等级与探测等级</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#利用sqlmap进行注入原理学习"><span class="nav-number">3.2.2.11.</span> <span class="nav-text">利用sqlmap进行注入原理学习</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sqlmap主要目录目录"><span class="nav-number">3.2.2.12.</span> <span class="nav-text">sqlmap主要目录目录:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sqlmap的注入语法："><span class="nav-number">3.2.2.13.</span> <span class="nav-text">sqlmap的注入语法：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sqlmap的代理："><span class="nav-number">3.2.2.14.</span> <span class="nav-text">sqlmap的代理：</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart-o"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Adolph</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">16.2k</span>
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
